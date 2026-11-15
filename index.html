@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tom Moraz — Derivatives & quantitative tools</title>
+<meta name="description" content="Master in Management student at SKEMA (Finance & Quants). Monte Carlo pricing, cross-asset dashboards and market automation in Python.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1620;
+    --panel:#16212e;
+    --panel-2:#1b2836;
+    --line:#26354a;
+    --line-soft:#1f2d3e;
+    --fg:#e8eef5;
+    --fg-soft:#aebbc9;
+    --muted:#78889a;
+    --up:#3ecf8e;
+    --amber:#e8a33d;
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--fg);
+    font-family:"IBM Plex Sans",system-ui,sans-serif;
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- status bar ---------- */
+
+  .status{
+    position:sticky;
+    top:0;
+    z-index:10;
+    background:rgba(14,22,32,.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line-soft);
+  }
+
+  .status-inner{
+    max-width:68rem;
+    margin:0 auto;
+    padding:.625rem clamp(1rem,4vw,2.5rem);
+    display:flex;
+    gap:1rem;
+    justify-content:space-between;
+    align-items:center;
+    font-family:"IBM Plex Mono",ui-monospace,monospace;
+    font-size:.6875rem;
+    color:var(--muted);
+    letter-spacing:.02em;
+  }
+
+  .status strong{color:var(--fg);font-weight:500;}
+  .status .avail{color:var(--up);}
+
+  .dot{
+    display:inline-block;
+    width:.4375rem;height:.4375rem;
+    border-radius:50%;
+    background:var(--up);
+    margin-right:.4375rem;
+  }
+
+  .clock{white-space:nowrap;}
+
+  @media (max-width:44rem){.clock{display:none;}}
+  @media (max-width:30rem){.status .avail{display:none;}}
+
+  /* ---------- shell ---------- */
+
+  .shell{
+    max-width:68rem;
+    margin:0 auto;
+    padding:clamp(3rem,8vw,5.5rem) clamp(1rem,4vw,2.5rem) 4rem;
+  }
+
+  .lede h1{
+    font-family:Archivo,system-ui,sans-serif;
+    font-weight:700;
+    font-size:clamp(2.25rem,6.5vw,3.75rem);
+    line-height:1.03;
+    letter-spacing:-0.035em;
+    margin:0;
+    max-width:18ch;
+  }
+
+  .lede p{
+    font-size:clamp(1.0625rem,2.2vw,1.1875rem);
+    line-height:1.6;
+    color:var(--fg-soft);
+    margin:1.375rem 0 0;
+    max-width:40rem;
+  }
+
+  /* ---------- panels ---------- */
+
+  .work{margin-top:clamp(2.75rem,7vw,4rem);display:grid;gap:1.25rem;}
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:5px;
+    overflow:hidden;
+  }
+
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
+
+  @media (max-width:54rem){
+    .pair{grid-template-columns:1fr;}
+  }
+
+  /* the lead project carries its capture full width, above the text */
+  .panel-lead .shot{
+    border-right:0;
+    border-bottom:1px solid var(--line);
+    min-height:0;
+    background:#0f1014;
+  }
+
+  .panel-lead .shot img{height:auto;object-fit:contain;}
+
+  /* the capture is a window onto a longer page: let its lower edge dissolve */
+  .panel-lead .shot::after{
+    content:"";
+    position:absolute;
+    left:0;right:0;bottom:0;
+    height:3.25rem;
+    background:linear-gradient(to bottom,rgba(15,16,20,0),#0f1014);
+    pointer-events:none;
+  }
+
+  .panel-lead .panel-body{max-width:44rem;}
+
+  /* media slot */
+
+  .shot{
+    position:relative;
+    background:var(--panel-2);
+    border-right:1px solid var(--line);
+    min-height:13rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+  }
+
+  .pair .shot{border-right:0;border-bottom:1px solid var(--line);}
+
+  @media (max-width:54rem){
+    .panel-lead .shot{border-right:0;border-bottom:1px solid var(--line);}
+  }
+
+  .shot img,.shot video{
+    display:block;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    object-position:top center;
+  }
+
+  /* portrait capture, shown whole rather than cropped */
+  .shot--portrait{padding:1.25rem 0;}
+  .shot--portrait video{
+    width:auto;
+    max-width:62%;
+    height:auto;
+    max-height:17rem;
+    object-fit:contain;
+    border:1px solid var(--line);
+    border-radius:8px;
+  }
+
+  .shot-empty{
+    font-family:"IBM Plex Mono",ui-monospace,monospace;
+    font-size:.75rem;
+    color:var(--muted);
+    text-align:center;
+    padding:1.5rem;
+    line-height:1.7;
+  }
+
+  .shot-empty span{display:block;color:#56657a;}
+
+  .panel-body{padding:clamp(1.375rem,3vw,2rem);}
+
+  .panel h2{
+    font-family:Archivo,system-ui,sans-serif;
+    font-weight:600;
+    font-size:clamp(1.1875rem,2.6vw,1.4375rem);
+    letter-spacing:-0.015em;
+    line-height:1.2;
+    margin:0;
+  }
+
+  .panel p{color:var(--fg-soft);font-size:.9375rem;margin:.75rem 0 0;}
+
+  .meta{
+    margin:1.25rem 0 0;
+    padding-top:1rem;
+    border-top:1px solid var(--line-soft);
+    display:flex;
+    flex-wrap:wrap;
+    gap:.4375rem .5rem;
+  }
+
+  .tag{
+    font-family:"IBM Plex Mono",ui-monospace,monospace;
+    font-size:.6875rem;
+    color:var(--fg-soft);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:.25rem .5rem;
+    line-height:1.3;
+  }
+
+  .tag--live{color:var(--up);border-color:rgba(62,207,142,.35);}
+  .tag--sched{color:var(--amber);border-color:rgba(232,163,61,.35);}
+
+  .actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.25rem;}
+
+  .btn{
+    font-size:.8125rem;
+    line-height:1;
+    padding:.625rem 1rem;
+    border-radius:3px;
+    text-decoration:none;
+    border:1px solid var(--line);
+    color:var(--fg);
+    transition:background-color .14s ease,border-color .14s ease;
+  }
+
+  .btn:hover{background:var(--panel-2);border-color:#3a4c66;}
+  .btn--primary{background:var(--fg);color:#0e1620;border-color:var(--fg);font-weight:500;}
+  .btn--primary:hover{background:#fff;border-color:#fff;}
+
+  a:focus-visible,.btn:focus-visible{outline:2px solid var(--up);outline-offset:3px;}
+
+  /* ---------- footer ---------- */
+
+  .foot{
+    margin-top:clamp(2.5rem,6vw,3.5rem);
+    padding-top:1.5rem;
+    border-top:1px solid var(--line-soft);
+    display:flex;
+    flex-wrap:wrap;
+    gap:.75rem 2rem;
+    justify-content:space-between;
+    align-items:baseline;
+  }
+
+  .foot nav{display:flex;flex-wrap:wrap;gap:1.5rem;font-size:.875rem;}
+  .foot a{color:var(--fg);text-decoration:none;border-bottom:1px solid var(--line);padding-bottom:2px;}
+  .foot a:hover{color:var(--up);border-bottom-color:var(--up);}
+  .foot p{margin:0;color:var(--muted);font-size:.75rem;}
+</style>
+</head>
+<body>
+
+<div class="status">
+  <div class="status-inner">
+    <span><strong>TOM MORAZ</strong> &nbsp;MiM Finance &amp; Quants &middot; SKEMA</span>
+    <span class="avail"><span class="dot"></span>Available Jan 2027</span>
+    <span class="clock" id="clock">--:--:-- CET</span>
+  </div>
+</div>
+
+<main class="shell">
+
+  <section class="lede">
+    <h1>Derivatives, and the tools that price them.</h1>
+    <p>
+      I study fixed income and structured products at SKEMA, and I build my own
+      Python tools to work on them. Three of them are below. All running, all
+      open source.
+    </p>
+  </section>
+
+  <section class="work">
+
+    <article class="panel panel-lead">
+      <div class="shot">
+        <img src="img/pricer.jpg" alt="The Autocallable Structurer app: fair value, gross margin against the desk floor, expected life, and the term sheet of the note.">
+      </div>
+      <div class="panel-body">
+        <h2>Autocallable Structurer</h2>
+        <p>
+          Structures and prices a Phoenix autocallable note. Set the underlying,
+          the volatility, the funding and the schedule, and the app returns the
+          fair value, the gross margin against the desk floor, the expected life
+          and the probability of capital loss, with the term sheet that goes
+          with it.
+        </p>
+        <div class="meta">
+          <span class="tag tag--live">live app</span>
+          <span class="tag">Monte Carlo</span>
+          <span class="tag">decrement index</span>
+          <span class="tag">margin vs floor</span>
+          <span class="tag">Python / NumPy</span>
+          <span class="tag">Streamlit</span>
+        </div>
+        <div class="actions">
+          <a class="btn btn--primary" href="https://autocall-structurer-gcurrn4nsxqigkcamkrevx.streamlit.app">Open the app</a>
+          <a class="btn" href="https://github.com/moraztom31/autocall-structurer">Read the code</a>
+        </div>
+      </div>
+    </article>
+
+    <div class="pair">
+
+      <article class="panel">
+        <div class="shot">
+          <video src="img/dashboard.mp4" poster="img/dashboard.jpg" autoplay muted loop playsinline
+                 aria-label="The cross-asset dashboard in use."></video>
+        </div>
+        <div class="panel-body">
+          <h2>Cross-Asset Dashboard</h2>
+          <p>
+            Equities, rates, FX and commodities in one view, on automated market
+            data. Snapshot, performance over any period, backtests and a
+            portfolio view.
+          </p>
+          <div class="meta">
+            <span class="tag tag--live">live app</span>
+            <span class="tag">Pandas</span>
+            <span class="tag">Streamlit</span>
+          </div>
+          <div class="actions">
+            <a class="btn btn--primary" href="https://market-dashboard-cli9umyzn2x5ukh99dnuln.streamlit.app/">Open the app</a>
+            <a class="btn" href="https://github.com/moraztom31/market-dashboard">Read the code</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="shot shot--portrait">
+          <video src="img/macro.mp4" poster="img/macro.jpg" autoplay muted loop playsinline
+                 aria-label="A daily macro briefing as received on the phone."></video>
+        </div>
+        <div class="panel-body">
+          <h2>Daily Macro Briefing</h2>
+          <p>
+            A bot that writes and sends a macro briefing every weekday morning
+            before the open: tone of the session, unusual moves in standard
+            deviations, and a read across rates, equities and commodities.
+          </p>
+          <div class="meta">
+            <span class="tag tag--sched">07:30 CET, Mon&ndash;Fri</span>
+            <span class="tag">GitHub Actions</span>
+            <span class="tag">Python</span>
+          </div>
+          <div class="actions">
+            <a class="btn btn--primary" href="https://github.com/moraztom31/macro-bot">Read the code</a>
+          </div>
+        </div>
+      </article>
+
+    </div>
+
+  </section>
+
+  <footer class="foot">
+    <nav aria-label="Contact">
+      <a href="https://www.linkedin.com/in/tommoraz">LinkedIn</a>
+      <a href="https://github.com/moraztom31">GitHub</a>
+      <a href="mailto:tom.moraz@skema.edu">tom.moraz@skema.edu</a>
+    </nav>
+    <p>Six-month internship, January or July 2027.</p>
+  </footer>
+
+</main>
+
+<script>
+(function () {
+  var out = document.getElementById('clock');
+  if (out) {
+    var fmt = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Paris',
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+    });
+    var tick = function () { out.textContent = fmt.format(new Date()) + ' CET'; };
+    tick();
+    setInterval(tick, 1000);
+  }
+
+  // Respect reduced-motion: hold the poster frame instead of looping.
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll('video').forEach(function (v) {
+      v.autoplay = false;
+      v.loop = false;
+      v.controls = true;
+      v.pause();
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
